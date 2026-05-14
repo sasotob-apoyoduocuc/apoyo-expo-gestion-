@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de Lüscher — Demo en vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #17171a;
+  --surface2: #1e1e23;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0eee8;
+  --muted: #7a7870;
+  --accent: #e8c97a;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+}
+
+/* ── PANTALLAS ── */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+.screen.active { opacity: 1; pointer-events: all; }
+
+/* ══════════════════════════════
+   PANTALLA 0 — INTRO
+══════════════════════════════ */
+#s0 {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg);
+}
+
+.intro-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.6rem;
+  font-weight: 500;
+}
+
+.intro-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.4rem;
+}
+
+.intro-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.intro-desc {
+  max-width: 480px;
+  margin: 0 auto 3rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.swatch-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 3.5rem;
+}
+
+.swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: float 3s ease-in-out infinite;
+}
+
+.swatch:nth-child(2) { animation-delay: .4s; }
+.swatch:nth-child(3) { animation-delay: .8s; }
+.swatch:nth-child(4) { animation-delay: 1.2s; }
+.swatch:nth-child(5) { animation-delay: 1.6s; }
+.swatch:nth-child(6) { animation-delay: 2.0s; }
+.swatch:nth-child(7) { animation-delay: 2.4s; }
+.swatch:nth-child(8) { animation-delay: 2.8s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.btn-start {
+  background: var(--accent);
+  color: #0d0d0f;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.btn-start:hover { transform: scale(1.04); opacity: 0.9; }
+.btn-start:active { transform: scale(0.97); }
+
+/* ══════════════════════════════
+   PANTALLA 1 — TEST
+══════════════════════════════ */
+#s1 {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+.test-header {
+  padding: 1.4rem 2.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-header-left h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.test-header-left p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.pdot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.pdot .pdot-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.pdot.filled .pdot-inner { transform: scale(1); }
+.pdot .pdot-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  z-index: 1;
+}
+.pdot.filled .pdot-num { color: #0d0d0f; }
+
+/* área central */
+.test-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
+}
+
+.instruction-txt {
+  font-size: 0.85rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 400;
+  transition: opacity 0.3s;
+}
+
+/* Colores en círculo grande */
+.colors-ring {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  max-width: 560px;
+  width: 100%;
+}
+
+.ctile {
+  aspect-ratio: 1;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  position: relative;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+}
+
+.ctile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.15s;
+}
+
+.ctile:hover::before { background: rgba(255,255,255,0.08); }
+.ctile.used { opacity: 0.18; pointer-events: none; transform: none !important; }
+.ctile:hover:not(.used) { transform: scale(1.06) translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+
+.ctile-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+.ctile-num {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0,0,0,0.45);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ctile.placed .ctile-num { opacity: 1; }
+
+/* footer del test */
+.test-footer {
+  padding: 1rem 2.5rem 1.4rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rank-strip {
+  display: flex;
+  gap: 6px;
+}
+
+.rslot {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--muted);
+  position: relative;
+  cursor: default;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.rslot.filled {
+  border-style: solid;
+  border-color: rgba(255,255,255,0.15);
+  cursor: pointer;
+}
+
+.rslot .rs-num {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.rslot.filled:hover::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.btn-analyze {
+  background: var(--accent);
+  color: #0d0d0f;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.btn-analyze:disabled { opacity: 0.25; pointer-events: none; }
+.btn-analyze:hover { transform: scale(1.04); }
+.btn-analyze:active { transform: scale(0.97); }
+
+.btn-reset-sm {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-left: 10px;
+}
+
+.btn-reset-sm:hover { background: var(--surface2); }
+
+/* ══════════════════════════════
+   PANTALLA 2 — LOADING
+══════════════════════════════ */
+#s2 {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
+  background: var(--bg);
+}
+
+.color-pulse-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.cp {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+.cp:nth-child(2) { animation-delay: .18s; }
+.cp:nth-child(3) { animation-delay: .36s; }
+.cp:nth-child(4) { animation-delay: .54s; }
+.cp:nth-child(5) { animation-delay: .72s; }
+.cp:nth-child(6) { animation-delay: .90s; }
+.cp:nth-child(7) { animation-delay: 1.08s; }
+.cp:nth-child(8) { animation-delay: 1.26s; }
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(0.6); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+#s2 h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  text-align: center;
+}
+
+#s2 p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* ══════════════════════════════
+   PANTALLA 3 — RESULTADO
+══════════════════════════════ */
+#s3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.result-top {
+  grid-column: 1 / -1;
+  padding: 1.6rem 2.5rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-top-left { }
+
+.result-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.result-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.result-seq {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.seq-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+/* columnas de resultado */
+.result-col {
+  padding: 1.4rem 2rem 1rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.result-col:first-of-type {
+  border-right: 1px solid var(--border);
+}
+
+.rcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 0.9rem;
+  animation: cardIn 0.5s ease both;
+}
+
+.rcard:nth-child(2) { animation-delay: .1s; }
+.rcard:nth-child(3) { animation-delay: .2s; }
+.rcard:nth-child(4) { animation-delay: .3s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rcard-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.rcard-body {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: rgba(240,238,232,0.82);
+  font-weight: 300;
+}
+
+.rcard-body ul {
+  list-style: none;
+  padding: 0;
+}
+
+.rcard-body ul li {
+  padding: 3px 0;
+  padding-left: 1em;
+  position: relative;
+}
+
+.rcard-body ul li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.rcard.highlight {
+  border-color: var(--accent);
+  background: rgba(232,201,122,0.06);
+}
+
+.rcard.highlight .rcard-body {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 0.6rem;
+}
+
+.tag {
+  font-size: 0.72rem;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: rgba(240,238,232,0.6);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* footer resultado */
+.result-footer {
+  grid-column: 1 / -1;
+  padding: 0.9rem 2.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.disclaimer-small {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+.btn-again {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-again:hover { background: var(--surface2); }
+
+/* error */
+.error-bar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #5c1a1a;
+  border: 1px solid #8b2a2a;
+  color: #f5c0c0;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- ── S0: INTRO ── -->
+<div class="screen active" id="s0">
+  <p class="intro-eyebrow">Psicología del color · Max Lüscher, 1947</p>
+  <div class="swatch-row" id="intro-swatches"></div>
+  <h1 class="intro-title">Test de<br><em>Lüscher</em></h1>
+  <p class="intro-desc">Una prueba proyectiva basada en la preferencia de colores. Tu elección revela necesidades emocionales y estados psicológicos del momento.</p>
+  <button class="btn-start" onclick="goTo(1)">Comenzar el test →</button>
+</div>
+
+<!-- ── S1: TEST ── -->
+<div class="screen" id="s1">
+  <div class="test-header">
+    <div class="test-header-left">
+      <h2>Elige tu color preferido <em style="font-family:'Playfair Display',serif; font-style:italic;">ahora mismo</em></h2>
+      <p id="inst-sub">Selecciona del más al menos preferido — sin pensar demasiado</p>
+    </div>
+    <div class="progress-dots" id="pdots"></div>
+  </div>
+
+  <div class="test-body">
+    <p class="instruction-txt" id="inst-txt">¿Cuál te atrae más en este momento?</p>
+    <div class="colors-ring" id="colors-ring"></div>
+  </div>
+
+  <div class="test-footer">
+    <div style="display:flex; align-items:center; gap:14px; flex:1; overflow:hidden;">
+      <div class="rank-strip" id="rank-strip"></div>
+      <button class="btn-reset-sm" onclick="resetTest()">Reiniciar</button>
+    </div>
+    <button class="btn-analyze" id="btn-analyze" disabled onclick="runAnalysis()">Ver análisis</button>
+  </div>
+</div>
+
+<!-- ── S2: LOADING ── -->
+<div class="screen" id="s2">
+  <div class="color-pulse-row" id="pulse-row"></div>
+  <h2>Analizando tu perfil…</h2>
+  <p id="load-msg">Interpretando la secuencia cromática</p>
+</div>
+
+<!-- ── S3: RESULTADO ── -->
+<div class="screen" id="s3">
+  <div class="result-top">
+    <div class="result-top-left">
+      <p class="result-eyebrow">Tu perfil Lüscher</p>
+      <h2 class="result-title" id="r-titulo">—</h2>
+    </div>
+    <div class="result-seq" id="r-seq"></div>
+  </div>
+
+  <div class="result-col" id="r-col-left"></div>
+  <div class="result-col" id="r-col-right"></div>
+
+  <div class="result-footer">
+    <p class="disclaimer-small">Análisis orientativo basado en la teoría de Max Lüscher (1947). No reemplaza evaluación profesional.</p>
+    <button class="btn-again" onclick="resetAll()">← Volver al inicio</button>
+  </div>
+</div>
+
+<div class="error-bar" id="error-bar">Error de conexión — intenta de nuevo</div>
+
+<script>
+const COLORS = [
+  { id:'azul',     hex:'#1B4F9C', label:'Azul' },
+  { id:'verde',    hex:'#2E7D4F', label:'Verde' },
+  { id:'rojo',     hex:'#C0392B', label:'Rojo' },
+  { id:'amarillo', hex:'#C89A10', label:'Amarillo' },
+  { id:'violeta',  hex:'#7B3FA0', label:'Violeta' },
+  { id:'cafe',     hex:'#8B5E3C', label:'Café' },
+  { id:'negro',    hex:'#1a1a1a', label:'Negro' },
+  { id:'gris',     hex:'#888888', label:'Gris' },
+];
+
+let ranking = [];
+
+/* ─ BUILD INTRO SWATCHES ─ */
+const introRow = document.getElementById('intro-swatches');
+COLORS.forEach(c => {
+  const d = document.createElement('div');
+  d.className = 'swatch';
+  d.style.background = c.hex;
+  introRow.appendChild(d);
+});
+
+/* ─ BUILD TEST UI ─ */
+function buildTest() {
+  // progress dots
+  const pd = document.getElementById('pdots');
+  pd.innerHTML = '';
+  COLORS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'pdot';
+    d.id = 'pd' + i;
+    d.innerHTML = `<div class="pdot-inner" id="pdi${i}"></div><span class="pdot-num">${i+1}</span>`;
+    pd.appendChild(d);
+  });
+
+  // color tiles
+  const ring = document.getElementById('colors-ring');
+  ring.innerHTML = '';
+  COLORS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'ctile';
+    d.id = 'ct-' + c.id;
+    d.style.background = c.hex;
+    d.innerHTML = `<div class="ctile-num" id="cn-${c.id}"></div><span class="ctile-label">${c.label}</span>`;
+    d.onclick = () => pick(c.id);
+    ring.appendChild(d);
+  });
+
+  // rank strip
+  const rs = document.getElementById('rank-strip');
+  rs.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'rslot';
+    s.id = 'rs' + i;
+    s.innerHTML = `<span class="rs-num">${i+1}</span>`;
+    s.onclick = () => removePick(i);
+    rs.appendChild(s);
+  }
+
+  // pulse row for loading
+  const pr = document.getElementById('pulse-row');
+  pr.innerHTML = '';
+  COLORS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'cp';
+    d.style.background = c.hex;
+    pr.appendChild(d);
+  });
+
+  updateInstructions();
+}
+
+function pick(id) {
+  if (ranking.find(r => r.id === id)) return;
+  if (ranking.length >= 8) return;
+  const c = COLORS.find(x => x.id === id);
+  const pos = ranking.length;
+  ranking.push({ ...c, pos });
+
+  // tile
+  document.getElementById('ct-' + id).classList.add('used', 'placed');
+  document.getElementById('cn-' + id).textContent = pos + 1;
+
+  // dot
+  const dot = document.getElementById('pdi' + pos);
+  dot.style.background = c.hex;
+  document.getElementById('pd' + pos).classList.add('filled');
+
+  // slot
+  const slot = document.getElementById('rs' + pos);
+  slot.classList.add('filled');
+  slot.style.background = c.hex;
+  slot.style.borderColor = 'transparent';
+
+  updateInstructions();
+  if (ranking.length === 8) document.getElementById('btn-analyze').disabled = false;
+}
+
+function removePick(pos) {
+  if (pos >= ranking.length) return;
+  const removed = ranking.splice(pos, 1)[0];
+
+  // restore tile
+  document.getElementById('ct-' + removed.id).classList.remove('used', 'placed');
+  document.getElementById('cn-' + removed.id).textContent = '';
+
+  // re-index
+  for (let i = pos; i < ranking.length; i++) {
+    ranking[i].pos = i;
+    document.getElementById('cn-' + ranking[i].id).textContent = i + 1;
+    const pd = document.getElementById('pdi' + i);
+    pd.style.background = ranking[i].hex;
+    document.getElementById('pd' + i).classList.add('filled');
+    const slot = document.getElementById('rs' + i);
+    slot.classList.add('filled');
+    slot.style.background = ranking[i].hex;
+  }
+
+  // clear last dot + slot
+  const last = ranking.length;
+  document.getElementById('pdi' + last).style.background = '';
+  document.getElementById('pd' + last).classList.remove('filled');
+  const sl = document.getElementById('rs' + last);
+  sl.classList.remove('filled');
+  sl.style.background = '';
+  sl.style.borderColor = '';
+
+  document.getElementById('btn-analyze').disabled = true;
+  updateInstructions();
+}
+
+function updateInstructions() {
+  const n = ranking.length;
+  const msgs = [
+    '¿Cuál te atrae más en este momento?',
+    'Ahora elige el segundo…',
+    'El tercero…',
+    'Sigue eligiendo…',
+    'Mitad del camino — continúa',
+    'Ya casi…',
+    'Dos más…',
+    'Último color',
+    '¡Perfecto! Puedes ver tu análisis',
+  ];
+  document.getElementById('inst-txt').textContent = msgs[n] || msgs[8];
+}
+
+function resetTest() {
+  ranking = [];
+  buildTest();
+  document.getElementById('btn-analyze').disabled = true;
+}
+
+function resetAll() {
+  resetTest();
+  goTo(0);
+}
+
+/* ─ NAVEGACIÓN ─ */
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+}
+
+/* ─ ANÁLISIS ─ */
+// ═══════════════════════════════════════════════════════════════
+// BASE DE CONOCIMIENTO LOCAL — Test de Lüscher (sin API, sin internet)
+// ═══════════════════════════════════════════════════════════════
+
+const LUSCHER_DB = {
+  // Necesidad principal de cada color cuando está elegido (pos 1-2)
+  necesidad: {
+    azul:    'Paz, afecto y conexión emocional profunda',
+    verde:   'Reconocimiento, control y autoafirmación',
+    rojo:    'Acción, éxito, estimulación y conquista',
+    amarillo:'Cambio, novedad y liberación de lo que lo limita',
+    violeta: 'Conexión profunda, sensibilidad y fusión emocional',
+    cafe:    'Confort físico, seguridad y descanso sensorial',
+    negro:   '⚠ Protesta o crisis — necesita espacio y escucha',
+    gris:    '⚠ Aislamiento y descanso — saturación del entorno',
+  },
+  // Estado emocional según color en posición 1
+  estado: {
+    azul:    'Busca estabilidad y vínculos afectivos genuinos. El azul como primera elección revela una necesidad de paz interior y de sentirse contenido emocionalmente.',
+    verde:   'Está en modo autoafirmación: quiere demostrar su valor y ser reconocido. El verde primero indica alta voluntad y autoexigencia.',
+    rojo:    'Con mucha energía y deseo de acción. El rojo primero revela vitalidad, impulso y orientación al logro inmediato.',
+    amarillo:'Busca activamente un cambio o escape. El amarillo primero refleja esperanza, creatividad y necesidad de movimiento.',
+    violeta: 'En un estado de alta sensibilidad emocional. El violeta primero indica intuición activa, empatía intensa o un estado de enamoramiento.',
+    cafe:    'Necesita comodidad y seguridad física con urgencia. El marrón primero puede indicar estrés físico o un período de mucho desgaste.',
+    negro:   'En un estado de rechazo o protesta ante la situación actual. El negro primero es una señal de crisis o agotamiento profundo.',
+    gris:    'Necesita desconectarse y aislarse del entorno. El gris primero revela saturación psíquica y búsqueda de neutralidad.',
+  },
+  // Tensión según color en posición 8 (más rechazado)
+  tension: {
+    azul:    'Rechaza la calma y la monotonía: hay una inquietud afectiva activa. Los vínculos del momento pueden sentirse insatisfactorios.',
+    verde:   'Hay un sentimiento de no ser suficientemente reconocido o valorado. La frustración de ego puede estar presente.',
+    rojo:    'Evita la competencia y el esfuerzo intenso. Puede haber agotamiento físico o emocional que frena la acción.',
+    amarillo:'Hay decepción o sensación de estar atrapado sin perspectiva de cambio. La esperanza está en un punto bajo.',
+    violeta: 'Tiende a desconfiar del mundo emocional y simbólico. Prima el pragmatismo y la lógica sobre el sentimiento.',
+    cafe:    'Descuida las necesidades físicas y corporales, posiblemente por presión mental o metas abstractas.',
+    negro:   'Acepta la vida tal como es, sin actitudes de rechazo ni nihilismo. Muy positivo en posición de rechazo.',
+    gris:    'Muy comprometido emocionalmente; le cuesta mantener distancia o neutralidad ante lo que vive.',
+  },
+  // Fortaleza según color en posición 1-2
+  fortaleza: {
+    azul:    'Profundidad emocional y lealtad en los vínculos',
+    verde:   'Persistencia, confianza en sí mismo y firmeza',
+    rojo:    'Vitalidad, competitividad y capacidad de acción',
+    amarillo:'Creatividad, optimismo y adaptabilidad',
+    violeta: 'Intuición, empatía y sensibilidad artística',
+    cafe:    'Conexión con el cuerpo y sentido práctico',
+    negro:   'Capacidad de establecer límites y decir no',
+    gris:    'Capacidad de mantenerse neutral y objetivo',
+  },
+  // Consejo según color más elegido
+  consejo: {
+    azul:    'Permite que el afecto fluya: buscar paz no es debilidad, es inteligencia emocional.',
+    verde:   'Tu capacidad de perseverar es una fortaleza real — no necesitas probársela a nadie más que a ti.',
+    rojo:    'Tienes mucha energía: úsala con dirección, no solo con intensidad.',
+    amarillo:'El cambio que buscas empieza con un paso pequeño pero auténtico. Confía en lo nuevo.',
+    violeta: 'Tu sensibilidad es un recurso, no una vulnerabilidad. Cuídala sin apagarla.',
+    cafe:    'Escucha lo que tu cuerpo te pide: descansar también es avanzar.',
+    negro:   'Está bien poner límites. Protegerte no es rendirse.',
+    gris:    'Tomarte un descanso del ruido exterior es una forma válida de recuperar claridad.',
+  },
+  // Palabras clave por color
+  palabras: {
+    azul:    ['paz','afecto','vínculo','estabilidad','profundidad'],
+    verde:   ['control','voluntad','reconocimiento','firmeza','ego'],
+    rojo:    ['acción','vitalidad','conquista','impulso','éxito'],
+    amarillo:['cambio','esperanza','libertad','creatividad','futuro'],
+    violeta: ['intuición','sensibilidad','fusión','empatía','magia'],
+    cafe:    ['confort','cuerpo','seguridad','raíces','calma'],
+    negro:   ['límite','protesta','renuncia','crisis','protección'],
+    gris:    ['neutralidad','distancia','descanso','aislamiento','silencio'],
+  },
+  // Interpretación de pares (pos 1+2 y 7+8)
+  pares: {
+    'azul-verde':    'Busca estabilidad y reconocimiento sin confrontación. Quiere ser valorado dentro de un entorno de paz y afecto.',
+    'azul-rojo':     'Tensión entre calma y acción: necesita tranquilidad pero también vitalidad. Una dualidad entre el descanso y la conquista.',
+    'azul-amarillo': 'Quiere paz pero también cambio. Puede estar buscando una nueva estabilidad en un contexto diferente al actual.',
+    'azul-violeta':  'Muy sensible, orienta sus vínculos a la profundidad y la fusión emocional. Posiblemente en estado de enamoramiento.',
+    'azul-cafe':     'Necesita seguridad en todos los planos: emocional y físico. Puede estar en un período de vulnerabilidad.',
+    'azul-negro':    'Busca paz desde un estado de renuncia o protesta. Señal de cansancio emocional profundo.',
+    'azul-gris':     'Necesita desconectarse y encontrar tranquilidad. Agotamiento con búsqueda de aislamiento protector.',
+    'verde-rojo':    'Perfil altamente ambicioso. Gran voluntad de poder y orientación a la acción. Modo conquista activo.',
+    'verde-amarillo':'Quiere ser reconocido en sus propios términos con libertad de acción. Fuerte ego e independencia.',
+    'verde-violeta': 'Autoafirmación creativa: quiere ser reconocido por su sensibilidad, intuición o talento artístico.',
+    'verde-cafe':    'Afirmación en lo concreto y material. Persona práctica orientada a resultados tangibles.',
+    'verde-negro':   'Voluntad de poder con rechazo de fondo. Puede haber frustración intensa por falta de control.',
+    'verde-gris':    'Autoafirmación con distancia emocional. Prioriza la lógica; puede parecer frío o calculador.',
+    'rojo-amarillo': 'Gran energía expansiva. Busca estimulación, aventura y éxito con libertad. Perfil muy activo y optimista.',
+    'rojo-violeta':  'Pasión intensa. Alta energía emocional y física combinadas. Puede ser inestable si no tiene cauce.',
+    'rojo-cafe':     'Fuerza vital orientada a lo físico y sensorial. Alta energía pero también necesita comfort y raíces.',
+    'rojo-negro':    'Impulso bloqueado por frustración. Puede manifestarse como agresividad contenida o rebeldía.',
+    'rojo-gris':     'Quiere actuar pero se frena a sí mismo. Conflicto entre el impulso de acción y la necesidad de distancia.',
+    'amarillo-violeta':'Persona muy soñadora, en transición vital importante o buscando algo transformador y mágico.',
+    'amarillo-cafe': 'Quiere cambiar pero con red de seguridad. Busca novedad sin perder el comfort.',
+    'amarillo-negro':'Esperanza y desesperación simultáneas. Estado ambivalente; posible crisis creativa o vital.',
+    'amarillo-gris': 'Quiere escapar pero sin comprometerse. Puede haber indecisión o evasión ante el cambio.',
+    'violeta-cafe':  'Sensibilidad muy orientada a lo físico y sensorial. Enamoramiento físico o necesidad intensa de confort.',
+    'violeta-negro': 'Alta sensibilidad en contexto de crisis. Vulnerabilidad emocional importante; necesita apoyo.',
+    'violeta-gris':  'Sensibilidad reprimida por distancia protectora. Quiere sentir pero se blinda emocionalmente.',
+    'cafe-negro':    'Necesidad urgente de comfort físico desde agotamiento total. Crisis de bienestar.',
+    'cafe-gris':     'Retiro total. Necesita descansar tanto mental como físicamente. Modo supervivencia activado.',
+    'negro-gris':    '⚠ Rechazo de todo estímulo. Aislamiento extremo. Requiere atención y cuidado inmediato.',
+  }
+};
+
+// Función para obtener la clave de par normalizada (orden alfabético)
+function parKey(id1, id2) {
+  return [id1, id2].sort().join('-');
+}
+
+// Motor de análisis 100% local
+function analizarLocal(ranking) {
+  const c1 = ranking[0], c2 = ranking[1];
+  const c7 = ranking[6], c8 = ranking[7];
+
+  // Título basado en los 2 primeros colores
+  const titulos = {
+    azul:    'En busca de paz y conexión',
+    verde:   'La fuerza de quien sabe lo que quiere',
+    rojo:    'Energía en estado puro',
+    amarillo:'Mirando hacia el horizonte',
+    violeta: 'Sensibilidad a flor de piel',
+    cafe:    'El cuerpo pide descanso',
+    negro:   'Marcando un límite necesario',
+    gris:    'Necesito silencio y espacio',
+  };
+
+  const titulo = titulos[c1.id] || 'Tu perfil del momento';
+
+  // Estado actual — combinar color 1 y 2
+  const parElegido = LUSCHER_DB.pares[parKey(c1.id, c2.id)];
+  const estado_actual = LUSCHER_DB.estado[c1.id] + (parElegido ? ` Con ${c2.label} como segundo color: ${parElegido}` : '');
+
+  // Tensiones — color 7 y 8
+  const parRechazado = LUSCHER_DB.pares[parKey(c7.id, c8.id)];
+  const tensiones = `${c7.label} en posición 7 indica: ${LUSCHER_DB.tension[c7.id]} ${c8.label} como color más rechazado refuerza: ${LUSCHER_DB.tension[c8.id]}`;
+
+  // Necesidades — tomar los 3 primeros colores
+  const necesidades = [
+    `${c1.label}: ${LUSCHER_DB.necesidad[c1.id]}`,
+    `${c2.label}: ${LUSCHER_DB.necesidad[c2.id]}`,
+    `${ranking[2].label}: ${LUSCHER_DB.necesidad[ranking[2].id]}`,
+  ];
+
+  // Fortalezas — colores 1, 2 y 3
+  const fortalezas = [
+    LUSCHER_DB.fortaleza[c1.id],
+    LUSCHER_DB.fortaleza[c2.id],
+    LUSCHER_DB.fortaleza[ranking[2].id],
+  ];
+
+  // Consejo basado en color 1
+  const consejo = LUSCHER_DB.consejo[c1.id];
+
+  // Palabras clave — mezcla de colores 1 y 2 (5 palabras)
+  const p1 = LUSCHER_DB.palabras[c1.id] || [];
+  const p2 = LUSCHER_DB.palabras[c2.id] || [];
+  const palabras_clave = [...p1.slice(0,3), ...p2.slice(0,2)];
+
+  return { titulo, estado_actual, tensiones, necesidades, fortalezas, consejo, palabras_clave };
+}
+
+const loadMsgs = [
+  'Interpretando la secuencia cromática…',
+  'Analizando pares de colores…',
+  'Elaborando tu perfil psicológico…',
+  'Casi listo…',
+];
+
+async function runAnalysis() {
+  goTo(2);
+  let mi = 0;
+  const lel = document.getElementById('load-msg');
+  const iv = setInterval(() => { lel.textContent = loadMsgs[++mi % loadMsgs.length]; }, 1800);
+
+  // update pulse colors with chosen sequence
+  document.querySelectorAll('.cp').forEach((el, i) => {
+    if (ranking[i]) el.style.background = ranking[i].hex;
+  });
+
+  // Pequeña pausa para que se vea la animación de carga
+  await new Promise(r => setTimeout(r, 2200));
+  clearInterval(iv);
+
+  try {
+    const resultado = analizarLocal(ranking);
+    showResult(resultado);
+  } catch(e) {
+    goTo(1);
+    const eb = document.getElementById('error-bar');
+    eb.style.opacity = '1';
+    setTimeout(() => eb.style.opacity = '0', 3500);
+  }
+}
+
+function showResult(d) {
+  // título + secuencia
+  document.getElementById('r-titulo').textContent = d.titulo || 'Tu perfil';
+  const seq = document.getElementById('r-seq');
+  seq.innerHTML = ranking.map(c =>
+    `<div class="seq-circle" style="background:${c.hex}" title="${c.label}"></div>`
+  ).join('');
+
+  // col izquierda
+  document.getElementById('r-col-left').innerHTML = `
+    <div class="rcard">
+      <p class="rcard-label">Estado actual</p>
+      <p class="rcard-body">${d.estado_actual}</p>
+    </div>
+    <div class="rcard">
+      <p class="rcard-label">Tensiones internas</p>
+      <p class="rcard-body">${d.tensiones}</p>
+    </div>
+    <div class="rcard highlight">
+      <p class="rcard-label">Orientación</p>
+      <p class="rcard-body">${d.consejo}</p>
+    </div>
+  `;
+
+  // col derecha
+  const necs = (d.necesidades || []).map(n => `<li>${n}</li>`).join('');
+  const fors = (d.fortalezas || []).map(f => `<li>${f}</li>`).join('');
+  const tags = (d.palabras_clave || []).map(t => `<span class="tag">${t}</span>`).join('');
+
+  document.getElementById('r-col-right').innerHTML = `
+    <div class="rcard">
+      <p class="rcard-label">Necesidades del momento</p>
+      <div class="rcard-body"><ul>${necs}</ul></div>
+    </div>
+    <div class="rcard">
+      <p class="rcard-label">Recursos y fortalezas</p>
+      <div class="rcard-body"><ul>${fors}</ul></div>
+    </div>
+    <div class="rcard">
+      <p class="rcard-label">Palabras clave</p>
+      <div class="tag-cloud">${tags}</div>
+    </div>
+  `;
+
+  goTo(3);
+}
+
+/* ─ INIT ─ */
+buildTest();
+</script>
+</body>
+</html>
